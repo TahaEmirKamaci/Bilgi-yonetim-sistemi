@@ -1,29 +1,65 @@
-let courses = [
-    { id: 1, name: 'Matematik', selectedBy: [], approvedByTeacher: [] },
-    { id: 2, name: 'Fizik', selectedBy: [], approvedByTeacher: [] },
-    { id: 3, name: 'Kimya', selectedBy: [], approvedByTeacher: [] },
-    { id: 4, name: 'Biyoloji', selectedBy: [], approvedByTeacher: [] },
-    { id: 5, name: 'Tarih', selectedBy: [], approvedByTeacher: [] },
-  ];
-  
-  export async function GET(req) {
-    return new Response(JSON.stringify(courses), { status: 200 });
+import db from '@/utils/db';
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const isStudent = searchParams.get('student');
+  const isTeacher = searchParams.get('teacher');
+
+  if (isStudent) {
+    const studentId = 1; // Örnek ID, gerçek sistemde auth kullanılmalı
+    const studentData = await db.collection('students').findOne({ id: studentId });
+
+    return new Response(JSON.stringify({
+      selectedCourses: studentData.selectedCourses || [],
+      grades: studentData.grades || [],
+    }), { status: 200 });
   }
-  
-  export async function POST(req) {
-    const { courseId, studentId, action } = await req.json();
-  
-    const course = courses.find((c) => c.id === courseId);
-    if (!course) {
-      return new Response(JSON.stringify({ success: false, message: 'Ders bulunamadı' }), { status: 404 });
-    }
-  
-    if (action === 'select') {
-      if (!course.selectedBy.includes(studentId)) course.selectedBy.push(studentId);
-    } else if (action === 'approve') {
-      if (!course.approvedByTeacher.includes(studentId)) course.approvedByTeacher.push(studentId);
-    }
-  
-    return new Response(JSON.stringify({ success: true, courses }), { status: 200 });
+
+  if (isTeacher) {
+    const teacherId = 1; // Örnek ID
+    const teacherCourses = await db.collection('courses').find({ teacherId }).toArray();
+
+    return new Response(JSON.stringify({ courses: teacherCourses }), { status: 200 });
   }
-  
+
+  const courses = await db.collection('courses').find().toArray();
+  return new Response(JSON.stringify(courses), { status: 200 });
+}
+
+export async function POST(request) {
+  const body = await request.json();
+
+  if (body.courseId) {
+    // Ders ekleme işlemi
+    const studentId = 1; // Örnek ID
+    await db.collection('students').updateOne(
+      { id: studentId },
+      { $addToSet: { selectedCourses: body.courseId } }
+    );
+
+    return new Response(JSON.stringify({ message: 'Ders seçildi' }), { status: 200 });
+  }
+
+  if (body.approved !== undefined) {
+    // Ders onaylama veya not ekleme işlemi
+    const { courseId, studentId, grade } = body;
+
+    if (grade) {
+      await db.collection('students').updateOne(
+        { id: studentId },
+        { $set: { [`grades.${courseId}`]: grade } }
+      );
+
+      return new Response(JSON.stringify({ message: 'Not girildi' }), { status: 200 });
+    }
+
+    await db.collection('courses').updateOne(
+      { id: courseId },
+      { $set: { approved: body.approved } }
+    );
+
+    return new Response(JSON.stringify({ message: 'Ders onaylandı' }), { status: 200 });
+  }
+
+  return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 });
+}
