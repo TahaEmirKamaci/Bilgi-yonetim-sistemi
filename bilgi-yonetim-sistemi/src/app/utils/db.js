@@ -1,9 +1,15 @@
+
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
+const MONGODB_URI = process.env.MONGODB_URI;
+let cachedClient = null;
 
-export default async function db() {
-  if (!client.isConnected) await client.connect();
-  return client.db('bilgi-yonetim'); // Veritabanı adı
+export async function connectDB() {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
+  const client = await MongoClient.connect(MONGODB_URI);
+  cachedClient = client.db();
+  return cachedClient;
 }

@@ -1,23 +1,32 @@
-import db from '@/utils/db';
+
+import { connectDB } from '../../utils/db';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { email, password, role } = JSON.parse(req.body);
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
+  try {
+    const { name, email, password, role } = req.body;
+    const db = await connectDB();
+    
     const existingUser = await db.collection('users').findOne({ email });
-
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const newUser = await db.collection('users').insertOne({
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await db.collection('users').insertOne({
+      name,
       email,
-      password,
-      role, // "student" veya "teacher"
+      password: hashedPassword,
+      role,
+      createdAt: new Date()
     });
 
-    res.status(201).json({ message: 'User registered', userId: newUser.insertedId });
-  } else {
-    res.status(405).json({ message: 'Method not allowed' });
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 }

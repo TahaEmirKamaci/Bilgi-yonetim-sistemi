@@ -1,40 +1,39 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --secondary: #06b6d4;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --background: #f8fafc;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f8f9fa;
+  background-color: var(--background);
+  font-family: 'Inter', sans-serif;
 }
 
-h1, h2 {
-  color: #333;
+.card {
+  @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300;
 }
 
-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  cursor: pointer;
-  border-radius: 5px;
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
 }
 
-button:hover {
-  background-color: #0056b3;
+.btn-primary {
+  @apply bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800;
 }
 
-.course-selection ul, .grades-section, .course-approval {
-  margin: 20px 0;
+.btn-danger {
+  @apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
 }
 
-.course-selection li {
-  list-style: none;
-  margin: 10px 0;
-}
-
-.course-grade, .student {
-  margin: 15px 0;
-  padding: 10px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+.input-field {
+  @apply w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200;
 }

@@ -1,42 +1,20 @@
+
 'use client';
-
-export default function CourseApproval({ course }) {
-  const handleApproval = async () => {
-    const res = await fetch('/api/courses/manage', {
-      method: 'POST',
-      body: JSON.stringify({ courseId: course.id, approved: true }),
-    });
-
-    if (res.ok) {
-      alert('Ders onaylandı!');
-    }
-  };
-
-  const handleGradeEntry = async (studentId, grade) => {
-    const res = await fetch('/api/courses/manage', {
-      method: 'POST',
-      body: JSON.stringify({ courseId: course.id, studentId, grade }),
-    });
-
-    if (res.ok) {
-      alert('Not girildi!');
-    }
-  };
-
+export default function CourseApproval({ courseId, onApprove, onReject }) {
   return (
-    <div className="course-approval">
-      <h2>Ders: {course.name}</h2>
-      {!course.approved && <button onClick={handleApproval}>Dersi Onayla</button>}
-      {course.students.map((student) => (
-        <div key={student.id} className="student">
-          <p>Öğrenci: {student.name}</p>
-          <input
-            type="text"
-            placeholder="Not gir"
-            onBlur={(e) => handleGradeEntry(student.id, e.target.value)}
-          />
-        </div>
-      ))}
+    <div className="flex space-x-2">
+      <button
+        onClick={() => onApprove(courseId)}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+      >
+        Onayla
+      </button>
+      <button
+        onClick={() => onReject(courseId)}
+        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
+        Reddet
+      </button>
     </div>
   );
 }

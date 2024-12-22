@@ -1,25 +1,30 @@
-import { NextResponse } from 'next/server';
 
-const courses = [
-  { id: 1, name: 'Math', approved: false, grade: null },
-  { id: 2, name: 'Science', approved: false, grade: null },
-  { id: 3, name: 'History', approved: false, grade: null },
-  { id: 4, name: 'Art', approved: false, grade: null },
-  { id: 5, name: 'Physical Education', approved: false, grade: null },
-];
+import { connectDB } from '../../utils/db';
+import { authMiddleware } from '../../utils/auth';
 
-export async function GET() {
-  return NextResponse.json(courses);
-}
+export default async function handler(req, res) {
+  try {
+    const user = await authMiddleware(req, res);
+    const db = await connectDB();
+    
+    if (req.method === 'GET') {
+      const courses = await db.collection('courses').find({}).toArray();
+      return res.status(200).json(courses);
+    }
 
-export async function POST(request) {
-  const { id, approved, grade } = await request.json();
+    if (req.method === 'POST' && user.role === 'teacher') {
+      const { name, description } = req.body;
+      const course = await db.collection('courses').insertOne({
+        name,
+        description,
+        teacherId: user._id,
+        createdAt: new Date()
+      });
+      return res.status(201).json(course);
+    }
 
-  const course = courses.find((c) => c.id === id);
-  if (course) {
-    course.approved = approved || course.approved;
-    course.grade = grade || course.grade;
+    res.status(405).json({ message: 'Method not allowed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
-
-  return NextResponse.json({ message: 'Course updated', courses });
 }
