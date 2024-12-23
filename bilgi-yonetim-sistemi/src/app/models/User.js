@@ -1,3 +1,5 @@
+import { connectDB } from '../utils/db';
+
 const userSchema = new mongoose.Schema({
     email: String,
     password: String, 
@@ -7,17 +9,42 @@ const userSchema = new mongoose.Schema({
   });
   
   
-  const users = [
-    {
-      email: "ogretmen@example.com",
-      password: "$2a$10$hashedpassword...", // "123456" şifrelenmiş hali
-      role: "teacher",
-      fullName: "Ahmet Öğretmen"
-    },
-    {
-      email: "ogrenci@example.com",
-      password: "$2a$10$hashedpassword...", // "123456" şifrelenmiş hali
-      role: "student",
-      fullName: "Mehmet Öğrenci"
-    }
-  ];
+  const seedData = async () => {
+    const db = await connectDB();
+  
+    const users = [
+      {
+        email: "ogretmen1@example.com",
+        password: "123456",
+        role: "teacher",
+        fullName: "Ahmet Öğretmen"
+      },
+      {
+        email: "ogretmen2@example.com",
+        password: "123456",
+        role: "teacher",
+        fullName: "Fatma Öğretmen"
+      },
+      {
+        email: "ogrenci1@example.com",
+        password: "123456",
+        role: "student",
+        fullName: "Mehmet Öğrenci"
+      },
+      {
+        email: "ogrenci2@example.com",
+        password: "123456",
+        role: "student",
+        fullName: "Ayşe Öğrenci"
+      }
+    ];
+  
+    await db.collection('users').insertMany(users);
+    console.log('Kullanıcılar başarıyla eklendi!');
+    process.exit();
+  };
+  
+  seedData().catch((error) => {
+    console.error('Hata oluştu:', error);
+    process.exit(1);
+  });

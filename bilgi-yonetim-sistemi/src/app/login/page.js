@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -6,27 +5,36 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null); // Hata mesajını tutmak için
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
       });
-      
+
       if (res.ok) {
         const { user } = await res.json();
         router.push(user.role === 'teacher' ? '/teacher' : '/student');
+      } else {
+        const { message } = await res.json();
+        setError(message); // Hata mesajını ayarla
       }
     } catch (error) {
       console.error('Login error:', error);
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
     }
+
     setIsLoading(false);
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-50">
       <div className="max-w-md w-full">
@@ -45,7 +53,7 @@ export default function LoginPage() {
                 type="email"
                 className="input-field"
                 value={credentials.email}
-                onChange={(e) => setCredentials({...credentials, email: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
               />
             </div>
 
@@ -57,9 +65,15 @@ export default function LoginPage() {
                 type="password"
                 className="input-field"
                 value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
               />
             </div>
+
+            {error && (
+              <div className="text-red-500 text-sm mt-2">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"

@@ -1,6 +1,5 @@
 
 import { connectDB } from '../../utils/db';
-import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,11 +15,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await db.collection('users').insertOne({
       name,
       email,
-      password: hashedPassword,
+      password,
       role,
       createdAt: new Date()
     });
